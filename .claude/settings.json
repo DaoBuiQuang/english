@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:docs.google.com)",
+      "Bash(curl -L --fail --silent --show-error \"https://docs.google.com/spreadsheets/d/1ZYwn4F8rrElTeRfI1XtCAG70iodWHE0BGxoBTRnlKMw/export?format=csv&gid=1212879462\" -o /tmp/vocab.csv)",
+      "Read(//tmp/**)",
+      "Bash(python -)",
+      "Bash(node --check syntax-check.js)",
+      "Bash(PYTHONIOENCODING=utf-8 python -)",
+      "Bash(python -c \"import sys; print\\('lines:', sum\\(1 for _ in sys.stdin\\)\\)\")"
+    ]
+  }
+}

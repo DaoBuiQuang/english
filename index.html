@@ -1,0 +1,571 @@
+<!doctype html>
+<html lang="vi">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ôn từ vựng</title>
+  <style>
+    :root {
+      --ink: #172033 --muted: #697386;
+      --line: #e6eaf0;
+      --primary: #5b5ce2;
+      --primary-dark: #4647c7;
+      --soft: #f4f5ff;
+      --green: #188861;
+      --green-soft: #e8f7f0;
+      --red: #cb4d5b;
+      --red-soft: #fff0f2;
+      --shadow: 0 18px 55px rgba(37, 43, 75, .11);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      color: var(--ink);
+      background: linear-gradient(145deg, #f7f8ff 0%, #eef5ff 55%, #fbfbff 100%);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+
+    button {
+      font: inherit;
+    }
+
+    .app {
+      width: min(920px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 48px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 18px;
+      margin-bottom: 28px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo {
+      width: 43px;
+      height: 43px;
+      display: grid;
+      place-items: center;
+      border-radius: 14px;
+      color: white;
+      font-size: 22px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #6e70ef, #4c4dcc);
+      box-shadow: 0 8px 18px rgba(91, 92, 226, .25);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(21px, 3vw, 28px);
+      letter-spacing: -.03em;
+    }
+
+    .subtitle {
+      margin: 3px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .refresh {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      color: var(--ink);
+      background: white;
+      cursor: pointer;
+      transition: .2s;
+    }
+
+    .refresh:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .card {
+      padding: clamp(20px, 4vw, 40px);
+      border: 1px solid rgba(255, 255, 255, .8);
+      border-radius: 24px;
+      background: rgba(255, 255, 255, .91);
+      box-shadow: var(--shadow);
+    }
+
+    .status {
+      margin-bottom: 18px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .status.error {
+      color: var(--red);
+    }
+
+    .mode-switch {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
+      padding: 5px;
+      margin-bottom: 30px;
+      border-radius: 14px;
+      background: #f1f2f7;
+    }
+
+    .mode-switch button {
+      padding: 12px 14px;
+      border: 0;
+      border-radius: 10px;
+      color: var(--muted);
+      background: transparent;
+      cursor: pointer;
+      font-weight: 650;
+      transition: .2s;
+    }
+
+    .mode-switch button.active {
+      color: var(--primary-dark);
+      background: white;
+      box-shadow: 0 3px 10px rgba(31, 40, 80, .08);
+    }
+
+    .stats {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+
+    .stat-label {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .stat-value {
+      margin-top: 2px;
+      font-size: 21px;
+      font-weight: 750;
+    }
+
+    .progress {
+      flex: 1;
+      max-width: 420px;
+      height: 8px;
+      overflow: hidden;
+      border-radius: 99px;
+      background: #edf0f5;
+    }
+
+    .progress span {
+      display: block;
+      width: 0;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #7274f1, #4c4dcc);
+      transition: width .35s;
+    }
+
+    .question-label {
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 650;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .question {
+      min-height: 74px;
+      margin: 0;
+      font-size: clamp(30px, 7vw, 54px);
+      letter-spacing: -.045em;
+      line-height: 1.08;
+      overflow-wrap: anywhere;
+    }
+
+    .pronunciation-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      min-height: 44px;
+      margin: 12px 0 30px;
+    }
+
+    .pronunciation {
+      min-height: 25px;
+      margin: 0;
+      color: var(--primary);
+      font-size: 16px;
+    }
+
+    .speak-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 12px;
+      border: 1px solid #dcdfff;
+      border-radius: 10px;
+      color: var(--primary-dark);
+      background: var(--soft);
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 650;
+      transition: .2s;
+    }
+
+    .speak-button:hover:not(:disabled) {
+      border-color: var(--primary);
+      background: #e9eaff;
+    }
+
+    .speak-button:disabled {
+      opacity: .6;
+      cursor: wait;
+    }
+
+    .answers {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .answer {
+      min-height: 66px;
+      padding: 16px 18px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      color: var(--ink);
+      text-align: left;
+      background: white;
+      cursor: pointer;
+      transition: transform .15s, border-color .15s, background .15s;
+    }
+
+    .answer:hover:not(:disabled) {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+      background: var(--soft);
+    }
+
+    .answer:disabled {
+      cursor: default;
+    }
+
+    .answer.correct {
+      border-color: var(--green);
+      color: var(--green);
+      background: var(--green-soft);
+    }
+
+    .answer.wrong {
+      border-color: var(--red);
+      color: var(--red);
+      background: var(--red-soft);
+    }
+
+    .feedback {
+      min-height: 28px;
+      margin: 22px 0 0;
+      font-weight: 650;
+    }
+
+    .feedback.correct {
+      color: var(--green);
+    }
+
+    .feedback.wrong {
+      color: var(--red);
+    }
+
+    .actions {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 26px;
+    }
+
+    .action {
+      padding: 12px 18px;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      color: var(--ink);
+      background: white;
+      cursor: pointer;
+    }
+
+    .action.primary {
+      border-color: var(--primary);
+      color: white;
+      background: var(--primary);
+    }
+
+    .action.primary:hover {
+      background: var(--primary-dark);
+    }
+
+    .action:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+    }
+
+    .loading {
+      padding: 50px 0;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .empty {
+      padding: 28px 0;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    @media (max-width: 600px) {
+      .app {
+        width: min(100% - 20px, 920px);
+        padding-top: 16px;
+      }
+
+      .topbar {
+        align-items: flex-start;
+        margin-bottom: 17px;
+      }
+
+      .refresh span {
+        display: none;
+      }
+
+      .refresh {
+        padding: 10px;
+      }
+
+      .card {
+        border-radius: 18px;
+        padding: 20px 16px;
+      }
+
+      .stats {
+        align-items: flex-start;
+        flex-wrap: wrap;
+      }
+
+      .progress {
+        order: 3;
+        flex-basis: 100%;
+        max-width: none;
+      }
+
+      .answers {
+        grid-template-columns: 1fr;
+      }
+
+      .answer {
+        min-height: 56px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">✓</div>
+        <div>
+          <h1>Ôn từ vựng</h1>
+          <p class="subtitle">Học từ mới theo cách chủ động</p>
+        </div>
+      </div>
+      <button class="refresh" id="refreshButton" type="button" title="Tải lại dữ liệu">↻ <span>Cập nhật</span></button>
+    </header>
+
+    <section class="card" aria-live="polite">
+      <div class="status" id="status">Đang tải từ vựng từ Google Trang tính…</div>
+      <div id="quiz" hidden>
+        <div class="mode-switch" role="tablist" aria-label="Chế độ ôn tập">
+          <button class="active" data-mode="en-to-vi" type="button">English → Tiếng Việt</button>
+          <button data-mode="vi-to-en" type="button">Tiếng Việt → English</button>
+        </div>
+        <div class="stats">
+          <div>
+            <div class="stat-label">Câu hỏi</div>
+            <div class="stat-value" id="counter">1 / 1</div>
+          </div>
+          <div>
+            <div class="stat-label">Điểm</div>
+            <div class="stat-value" id="score">0</div>
+          </div>
+          <div class="progress" aria-label="Tiến độ"><span id="progressBar"></span></div>
+        </div>
+        <p class="question-label" id="questionLabel">Chọn nghĩa đúng của từ</p>
+        <h2 class="question" id="question"></h2>
+        <div class="pronunciation-row">
+          <p class="pronunciation" id="pronunciation"></p>
+          <button class="speak-button" id="speakButton" type="button" title="Nghe cách phát âm tiếng Anh">🔊 Nghe phát
+            âm</button>
+        </div>
+        <div class="answers" id="answers"></div>
+        <p class="feedback" id="feedback" role="status"></p>
+        <div class="actions"><button class="action" id="resetButton" type="button">Làm lại</button><button
+            class="action primary" id="nextButton" type="button" disabled>Câu tiếp theo →</button></div>
+      </div>
+      <div class="loading" id="loading">Một chút nhé…</div>
+    </section>
+  </main>
+
+  <script>
+    const CSV_URL = 'https://docs.google.com/spreadsheets/d/1ZYwn4F8rrElTeRfI1XtCAG70iodWHE0BGxoBTRnlKMw/export?format=csv&gid=1212879462';
+    const state = { words: [], mode: 'en-to-vi', current: null, answered: false, score: 0, asked: 0, lastIndex: -1, speaking: false };
+    const $ = (id) => document.getElementById(id);
+
+    function parseCSV(text) {
+      const rows = []; let row = []; let cell = ''; let quoted = false;
+      for (let i = 0; i < text.length; i += 1) {
+        const char = text[i];
+        if (char === '"') { if (quoted && text[i + 1] === '"') { cell += '"'; i += 1; } else quoted = !quoted; }
+        else if (char === ',' && !quoted) { row.push(cell.trim()); cell = ''; }
+        else if ((char === '\n' || char === '\r') && !quoted) { if (char === '\r' && text[i + 1] === '\n') i += 1; row.push(cell.trim()); if (row.some(Boolean)) rows.push(row); row = []; cell = ''; }
+        else cell += char;
+      }
+      if (cell || row.length) { row.push(cell.trim()); if (row.some(Boolean)) rows.push(row); }
+      return rows;
+    }
+
+    function headerKey(value) {
+      return value.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z]/g, '');
+    }
+
+    function wordsFromRows(rows) {
+      if (rows.length < 2) return [];
+      const headers = rows[0].map(headerKey);
+      const english = headers.findIndex((h) => h === 'english' || h === 'eng');
+      const vietnamese = headers.findIndex((h) => h === 'tiengviet' || h === 'vietnamese' || h === 'vietnam');
+      const transliteration = headers.findIndex((h) => h.includes('transliteration') || h.includes('phienam'));
+      if (english < 0 || vietnamese < 0) throw new Error('Không tìm thấy hai cột English và Tiếng Việt.');
+      const unique = new Set();
+      return rows.slice(1).map((cells) => ({ english: String(cells[english] ?? '').trim(), vietnamese: String(cells[vietnamese] ?? '').trim(), transliteration: transliteration >= 0 ? String(cells[transliteration] ?? '').trim() : '' }))
+        .filter((word) => word.english && word.vietnamese)
+        .filter((word) => { const key = `${word.english.toLowerCase()}|${word.vietnamese.toLowerCase()}`; if (unique.has(key)) return false; unique.add(key); return true; });
+    }
+
+    function readWords(csv) { return wordsFromRows(parseCSV(csv)); }
+
+    function shuffle(items) { return [...items].sort(() => Math.random() - 0.5); }
+    function chooseQuestion() {
+      let index = Math.floor(Math.random() * state.words.length);
+      if (state.words.length > 1 && index === state.lastIndex) index = (index + 1) % state.words.length;
+      state.lastIndex = index; state.current = state.words[index]; state.answered = false;
+      renderQuestion();
+    }
+
+    function resetSpeechButton() {
+      if (window.speechSynthesis) window.speechSynthesis.cancel();
+      state.speaking = false;
+      $('speakButton').disabled = false;
+      $('speakButton').textContent = '🔊 Nghe phát âm';
+    }
+
+    function speakCurrentWord() {
+      if (!('speechSynthesis' in window) || !('SpeechSynthesisUtterance' in window)) {
+        $('feedback').textContent = 'Trình duyệt này chưa hỗ trợ phát âm tự động.';
+        $('feedback').className = 'feedback wrong';
+        return;
+      }
+      resetSpeechButton();
+      const utterance = new SpeechSynthesisUtterance(state.current.english);
+      utterance.lang = 'en-US';
+      utterance.rate = 0.88;
+      const englishVoice = window.speechSynthesis.getVoices().find((voice) => voice.lang?.toLowerCase().startsWith('en'));
+      if (englishVoice) utterance.voice = englishVoice;
+      state.speaking = true;
+      $('speakButton').disabled = true;
+      $('speakButton').textContent = '🔊 Đang phát…';
+      const finish = () => {
+        state.speaking = false;
+        $('speakButton').disabled = false;
+        $('speakButton').textContent = '🔊 Nghe phát âm';
+      };
+      utterance.onend = finish;
+      utterance.onerror = finish;
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function renderQuestion() {
+      resetSpeechButton();
+      const isEnglish = state.mode === 'en-to-vi'; const answerKey = isEnglish ? 'vietnamese' : 'english';
+      const correct = state.current[answerKey];
+      const distractors = shuffle(state.words.filter((word) => word !== state.current && word[answerKey] !== correct)).slice(0, 3).map((word) => word[answerKey]);
+      $('questionLabel').textContent = isEnglish ? 'Chọn nghĩa đúng của từ' : 'Chọn từ tiếng Anh đúng';
+      $('question').textContent = isEnglish ? state.current.english : state.current.vietnamese;
+      $('pronunciation').textContent = state.current.transliteration ? `/${state.current.transliteration}/` : '';
+      $('counter').textContent = `${state.asked + 1} / ${state.words.length}`;
+      $('score').textContent = state.score;
+      $('progressBar').style.width = `${Math.min(100, (state.asked / state.words.length) * 100)}%`;
+      $('feedback').textContent = ''; $('feedback').className = 'feedback';
+      $('answers').innerHTML = shuffle([correct, ...distractors]).map((answer) => `<button class="answer" type="button" data-answer="${escapeHTML(answer)}">${escapeHTML(answer)}</button>`).join('');
+      document.querySelectorAll('.answer').forEach((button) => button.addEventListener('click', () => answerQuestion(button, correct)));
+      $('nextButton').disabled = true;
+    }
+
+    function escapeHTML(value) { return value.replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[char])); }
+    function answerQuestion(button, correct) {
+      if (state.answered) return; state.answered = true; state.asked += 1;
+      const isCorrect = button.dataset.answer === correct; if (isCorrect) state.score += 1;
+      document.querySelectorAll('.answer').forEach((item) => { item.disabled = true; if (item.dataset.answer === correct) item.classList.add('correct'); });
+      if (!isCorrect) button.classList.add('wrong');
+      $('feedback').textContent = isCorrect ? '✓ Chính xác! Làm tốt lắm.' : `○ Chưa đúng. Đáp án là: ${correct}`;
+      $('feedback').className = `feedback ${isCorrect ? 'correct' : 'wrong'}`; $('score').textContent = state.score;
+      $('progressBar').style.width = `${Math.min(100, (state.asked / state.words.length) * 100)}%`; $('nextButton').disabled = false;
+    }
+
+    function loadWordsWithJSONP() {
+      return new Promise((resolve, reject) => {
+        const callbackName = `sheetCallback_${Date.now()}`;
+        const script = document.createElement('script');
+        const cleanup = () => { delete window[callbackName]; script.remove(); };
+        const timer = setTimeout(() => { cleanup(); reject(new Error('Google Trang tính phản hồi quá lâu.')); }, 10000);
+        window[callbackName] = (response) => {
+          clearTimeout(timer); cleanup();
+          if (response?.status !== 'ok' || !response.table) { reject(new Error('Google Trang tính không trả về dữ liệu hợp lệ.')); return; }
+          const rows = response.table.rows.map((row) => row.c.map((cell) => cell?.v ?? ''));
+          resolve(wordsFromRows([['ENGLISH', 'TIẾNG VIỆT', 'TRANSLITERATION'], ...rows]));
+        };
+        script.onerror = () => { clearTimeout(timer); cleanup(); reject(new Error('Không thể kết nối tới Google Trang tính.')); };
+        script.src = `${CSV_URL.replace('/export?format=csv', '/gviz/tq?tqx=responseHandler:' + callbackName)}&gid=1212879462`;
+        document.head.appendChild(script);
+      });
+    }
+
+    async function loadWords() {
+      $('status').className = 'status'; $('status').textContent = 'Đang tải từ vựng từ Google Trang tính…'; $('loading').hidden = false; $('quiz').hidden = true; $('refreshButton').disabled = true;
+      try { const words = await loadWordsWithJSONP(); if (words.length < 2) throw new Error('Cần ít nhất 2 từ hợp lệ để tạo câu hỏi.'); state.words = words; state.score = 0; state.asked = 0; state.lastIndex = -1; $('status').textContent = `Đã tải ${words.length} từ · Câu hỏi được chọn ngẫu nhiên`; $('loading').hidden = true; $('quiz').hidden = false; chooseQuestion(); }
+      catch (error) { $('loading').textContent = `⚠ ${error.message} Hãy kiểm tra quyền xem của sheet hoặc thử cập nhật lại.`; $('status').className = 'status error'; $('status').textContent = 'Tải dữ liệu thất bại'; }
+      finally { $('refreshButton').disabled = false; }
+    }
+
+    document.querySelectorAll('[data-mode]').forEach((button) => button.addEventListener('click', () => { state.mode = button.dataset.mode; document.querySelectorAll('[data-mode]').forEach((item) => item.classList.toggle('active', item === button)); chooseQuestion(); }));
+    $('nextButton').addEventListener('click', chooseQuestion);
+    $('speakButton').addEventListener('click', speakCurrentWord);
+    $('resetButton').addEventListener('click', () => { state.score = 0; state.asked = 0; state.lastIndex = -1; chooseQuestion(); });
+    $('refreshButton').addEventListener('click', loadWords);
+    loadWords();
+  </script>
+</body>
+
+</html>
