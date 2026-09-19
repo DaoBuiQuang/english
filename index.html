@@ -319,6 +319,24 @@
       background: var(--primary-dark);
     }
 
+    .review-action {
+      display: none;
+      width: 100%;
+      margin-top: 12px;
+      border-color: #cfe8dc;
+      color: var(--green);
+      background: var(--green-soft);
+    }
+
+    .review-action.visible {
+      display: block;
+    }
+
+    .review-action:hover:not(:disabled) {
+      border-color: var(--green);
+      background: #dff3e9;
+    }
+
     .action:disabled {
       opacity: .45;
       cursor: not-allowed;
@@ -424,6 +442,7 @@
         <p class="feedback" id="feedback" role="status"></p>
         <div class="actions"><button class="action" id="resetButton" type="button">Làm lại</button><button
             class="action primary" id="nextButton" type="button" disabled>Câu tiếp theo →</button></div>
+        <button class="action review-action" id="reviewButton" type="button"></button>
       </div>
       <div class="loading" id="loading">Một chút nhé…</div>
     </section>
@@ -431,7 +450,7 @@
 
   <script>
     const CSV_URL = 'https://docs.google.com/spreadsheets/d/1ZYwn4F8rrElTeRfI1XtCAG70iodWHE0BGxoBTRnlKMw/export?format=csv&gid=1212879462';
-    const state = { words: [], mode: 'en-to-vi', current: null, answered: false, score: 0, asked: 0, lastIndex: -1, speaking: false };
+    const state = { words: [], quizWords: [], wrongWords: [], mode: 'en-to-vi', current: null, answered: false, score: 0, asked: 0, questionOrder: [], questionPosition: -1, completed: false, reviewMode: false, speaking: false };
     const $ = (id) => document.getElementById(id);
 
     function parseCSV(text) {
@@ -467,10 +486,16 @@
     function readWords(csv) { return wordsFromRows(parseCSV(csv)); }
 
     function shuffle(items) { return [...items].sort(() => Math.random() - 0.5); }
+    function createQuestionOrder() {
+      state.questionOrder = shuffle(state.quizWords.map((_, index) => index));
+      state.questionPosition = 0;
+    }
     function chooseQuestion() {
-      let index = Math.floor(Math.random() * state.words.length);
-      if (state.words.length > 1 && index === state.lastIndex) index = (index + 1) % state.words.length;
-      state.lastIndex = index; state.current = state.words[index]; state.answered = false;
+      if (state.completed) return;
+      if (!state.questionOrder.length || state.questionPosition >= state.questionOrder.length) createQuestionOrder();
+      const index = state.questionOrder[state.questionPosition];
+      state.questionPosition += 1;
+      state.current = state.quizWords[index]; state.answered = false;
       renderQuestion();
     }
 
@@ -510,28 +535,57 @@
       resetSpeechButton();
       const isEnglish = state.mode === 'en-to-vi'; const answerKey = isEnglish ? 'vietnamese' : 'english';
       const correct = state.current[answerKey];
-      const distractors = shuffle(state.words.filter((word) => word !== state.current && word[answerKey] !== correct)).slice(0, 3).map((word) => word[answerKey]);
+      const distractors = shuffle(state.quizWords.filter((word) => word !== state.current && word[answerKey] !== correct)).slice(0, 3).map((word) => word[answerKey]);
       $('questionLabel').textContent = isEnglish ? 'Chọn nghĩa đúng của từ' : 'Chọn từ tiếng Anh đúng';
       $('question').textContent = isEnglish ? state.current.english : state.current.vietnamese;
       $('pronunciation').textContent = state.current.transliteration ? `/${state.current.transliteration}/` : '';
-      $('counter').textContent = `${state.asked + 1} / ${state.words.length}`;
+      $('counter').textContent = `${state.asked + 1} / ${state.quizWords.length}`;
       $('score').textContent = state.score;
-      $('progressBar').style.width = `${Math.min(100, (state.asked / state.words.length) * 100)}%`;
+      $('progressBar').style.width = `${Math.min(100, (state.asked / state.quizWords.length) * 100)}%`;
       $('feedback').textContent = ''; $('feedback').className = 'feedback';
       $('answers').innerHTML = shuffle([correct, ...distractors]).map((answer) => `<button class="answer" type="button" data-answer="${escapeHTML(answer)}">${escapeHTML(answer)}</button>`).join('');
+      $('nextButton').textContent = state.questionPosition >= state.questionOrder.length ? 'Hoàn thành' : 'Câu tiếp theo →';
+      $('reviewButton').classList.remove('visible');
       document.querySelectorAll('.answer').forEach((button) => button.addEventListener('click', () => answerQuestion(button, correct)));
       $('nextButton').disabled = true;
     }
 
     function escapeHTML(value) { return value.replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[char])); }
+    function startWrongWordsReview() {
+      if (!state.wrongWords.length) return;
+      state.reviewMode = true;
+      state.quizWords = [...state.wrongWords];
+      state.score = 0; state.asked = 0; state.questionOrder = []; state.questionPosition = -1; state.completed = false;
+      $('resetButton').disabled = false;
+      $('status').textContent = `Ôn lại ${state.quizWords.length} từ đã trả lời sai`;
+      chooseQuestion();
+    }
     function answerQuestion(button, correct) {
       if (state.answered) return; state.answered = true; state.asked += 1;
       const isCorrect = button.dataset.answer === correct; if (isCorrect) state.score += 1;
+      if (!isCorrect && !state.wrongWords.some((word) => word === state.current)) state.wrongWords.push(state.current);
       document.querySelectorAll('.answer').forEach((item) => { item.disabled = true; if (item.dataset.answer === correct) item.classList.add('correct'); });
       if (!isCorrect) button.classList.add('wrong');
       $('feedback').textContent = isCorrect ? '✓ Chính xác! Làm tốt lắm.' : `○ Chưa đúng. Đáp án là: ${correct}`;
       $('feedback').className = `feedback ${isCorrect ? 'correct' : 'wrong'}`; $('score').textContent = state.score;
-      $('progressBar').style.width = `${Math.min(100, (state.asked / state.words.length) * 100)}%`; $('nextButton').disabled = false;
+      $('progressBar').style.width = `${Math.min(100, (state.asked / state.quizWords.length) * 100)}%`;
+      state.completed = state.asked >= state.quizWords.length;
+      if (state.completed) {
+        $('feedback').textContent += state.reviewMode ? ' Bạn đã hoàn thành lượt ôn từ sai!' : ' Bạn đã hoàn thành toàn bộ câu hỏi!';
+        $('nextButton').textContent = 'Đã hoàn thành';
+        $('nextButton').disabled = true;
+        $('resetButton').disabled = true;
+        if (state.wrongWords.length && !state.reviewMode) {
+          $('reviewButton').textContent = `Ôn lại ${state.wrongWords.length} từ sai`;
+          $('reviewButton').classList.add('visible');
+        }
+        if (state.reviewMode) {
+          $('reviewButton').textContent = `Ôn lại ${state.wrongWords.length} từ sai lần nữa`;
+          $('reviewButton').classList.add('visible');
+        }
+      } else {
+        $('nextButton').disabled = false;
+      }
     }
 
     function loadWordsWithJSONP() {
@@ -554,15 +608,16 @@
 
     async function loadWords() {
       $('status').className = 'status'; $('status').textContent = 'Đang tải từ vựng từ Google Trang tính…'; $('loading').hidden = false; $('quiz').hidden = true; $('refreshButton').disabled = true;
-      try { const words = await loadWordsWithJSONP(); if (words.length < 2) throw new Error('Cần ít nhất 2 từ hợp lệ để tạo câu hỏi.'); state.words = words; state.score = 0; state.asked = 0; state.lastIndex = -1; $('status').textContent = `Đã tải ${words.length} từ · Câu hỏi được chọn ngẫu nhiên`; $('loading').hidden = true; $('quiz').hidden = false; chooseQuestion(); }
+      try { const words = await loadWordsWithJSONP(); if (words.length < 2) throw new Error('Cần ít nhất 2 từ hợp lệ để tạo câu hỏi.'); state.words = words; state.quizWords = [...words]; state.wrongWords = []; state.reviewMode = false; state.score = 0; state.asked = 0; state.questionOrder = []; state.questionPosition = -1; state.completed = false; $('resetButton').disabled = false; $('reviewButton').classList.remove('visible'); $('status').textContent = `Đã tải ${words.length} từ · Câu hỏi được chọn ngẫu nhiên`; $('loading').hidden = true; $('quiz').hidden = false; chooseQuestion(); }
       catch (error) { $('loading').textContent = `⚠ ${error.message} Hãy kiểm tra quyền xem của sheet hoặc thử cập nhật lại.`; $('status').className = 'status error'; $('status').textContent = 'Tải dữ liệu thất bại'; }
       finally { $('refreshButton').disabled = false; }
     }
 
-    document.querySelectorAll('[data-mode]').forEach((button) => button.addEventListener('click', () => { state.mode = button.dataset.mode; document.querySelectorAll('[data-mode]').forEach((item) => item.classList.toggle('active', item === button)); chooseQuestion(); }));
+    document.querySelectorAll('[data-mode]').forEach((button) => button.addEventListener('click', () => { state.mode = button.dataset.mode; document.querySelectorAll('[data-mode]').forEach((item) => item.classList.toggle('active', item === button)); renderQuestion(); }));
     $('nextButton').addEventListener('click', chooseQuestion);
+    $('reviewButton').addEventListener('click', startWrongWordsReview);
     $('speakButton').addEventListener('click', speakCurrentWord);
-    $('resetButton').addEventListener('click', () => { state.score = 0; state.asked = 0; state.lastIndex = -1; chooseQuestion(); });
+    $('resetButton').addEventListener('click', () => { state.score = 0; state.asked = 0; state.questionOrder = []; state.questionPosition = -1; state.completed = false; $('resetButton').disabled = false; $('nextButton').textContent = 'Câu tiếp theo →'; chooseQuestion(); });
     $('refreshButton').addEventListener('click', loadWords);
     loadWords();
   </script>
